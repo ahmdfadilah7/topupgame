@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>UpZone - Premium Game Topup</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Boxicons for modern icons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <!-- AOS Animation CSS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- Matrix Canvas for Hacker Mode -->
+<canvas id="matrix-canvas" class="matrix-canvas"></canvas>
+<!-- Custom Cursor -->
+<div class="custom-cursor" id="custom-cursor"></div>
+
+<!-- Desktop Background Layer -->
+<div id="particles-js" class="desktop-bg"></div>
+
+<!-- Mobile App Container -->
+<div id="mobile-wrapper">
+    
+    <!-- Top Header Bar -->
+    <div class="top-header">
+        <div class="logo" id="logo-btn">
+            <span class="neon-text">UP</span>ZONE
+        </div>
+        <div class="header-actions">
+            <i class='bx bx-credit-card-front' style="color: var(--neon-accent); cursor: pointer;" onclick="navigate('scratch')" title="Daily Scratch Card"></i>
+            <i class='bx bx-bell' id="nav-notifications"></i>
+            <i class='bx bx-search' id="nav-search-icon"></i>
+        </div>
+    </div>
+
+    <!-- Live Transaction Ticker (Only visible on Home) -->
+    <div class="transaction-ticker" id="ticker">
+        <i class='bx bx-check-circle'></i>
+        <span id="ticker-text">Budi just top up 1000 DM MLBB</span>
+    </div>
+
+    <!-- Main Scrollable Content -->
+    <main class="main-content">
+        
+        <!-- ======================= HOME VIEW ======================= -->
+        <div class="app-view active" id="view-home">
+            <!-- Hero Section with Swiper Slider -->
+            <section class="hero-carousel">
+                <div class="swiper heroSwiper">
+                    <div class="swiper-wrapper">
+                        <div class="swiper-slide banner-1">
+                            <div class="slide-content">
+                                <h2>Special Promo <br><span class="neon-text">Up to 50%</span></h2>
+                                <p>Mobile Legends Diamonds</p>
+                            </div>
+                        </div>
+                        <div class="swiper-slide banner-2">
+                            <div class="slide-content">
+                                <h2>New Arrival <br><span class="neon-text">Valorant Points</span></h2>
+                                <p>Instant delivery guaranteed</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swiper-pagination"></div>
+                </div>
+            </section>
+
+            <!-- Flash Sale Section -->
+            <section class="flash-sale" data-aos="fade-up">
+                <div class="section-title">
+                    <h3><i class='bx bxs-zap neon-text'></i> Flash Sale</h3>
+                    <div class="countdown">
+                        <span>02</span>:<span>45</span>:<span>12</span>
+                    </div>
+                </div>
+                <div class="flash-grid">
+                    <div class="flash-card" onclick="openGameDetail('Mobile Legends')">
+                        <div class="discount-tag">-20%</div>
+                        <div class="game-img-small img-ml">ML</div>
+                        <h4>86 Diamonds</h4>
+                        <p class="price strike">Rp 25.000</p>
+                        <p class="price new">Rp 20.000</p>
+                    </div>
+                    <div class="flash-card" onclick="openGameDetail('PUBG Mobile')">
+                        <div class="discount-tag">-15%</div>
+                        <div class="game-img-small img-pubg">PUBG</div>
+                        <h4>60 UC</h4>
+                        <p class="price strike">Rp 15.000</p>
+                        <p class="price new">Rp 12.750</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sultan of the Week (Leaderboard) -->
+            <section class="sultan-board" data-aos="fade-up">
+                <div class="section-title">
+                    <h3><i class='bx bxs-crown neon-text'></i> Sultan of the Week</h3>
+                </div>
+                <div class="sultan-list">
+                    <div class="sultan-item gold" data-tilt data-tilt-scale="1.05">
+                        <div class="sultan-rank">1</div>
+                        <div class="sultan-avatar"><i class='bx bxs-user'></i></div>
+                        <div class="sultan-info">
+                            <h4>Raja Topup</h4>
+                            <p>Rp 5.450.000</p>
+                        </div>
+                        <i class='bx bxs-medal badge-icon'></i>
+                    </div>
+                    <div class="sultan-item silver" data-tilt data-tilt-scale="1.05">
+                        <div class="sultan-rank">2</div>
+                        <div class="sultan-avatar"><i class='bx bx-user'></i></div>
+                        <div class="sultan-info">
+                            <h4>ProGamer99</h4>
+                            <p>Rp 3.200.000</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Games Section -->
+            <section class="games-section" data-aos="fade-up">
+                <div class="section-header">
+                    <h3>Popular Games</h3>
+                    <div class="filters">
+                        <button class="filter-btn active" data-filter="all">All</button>
+                        <button class="filter-btn" data-filter="mobile">Mobile</button>
+                        <button class="filter-btn" data-filter="pc">PC</button>
+                    </div>
+                </div>
+
+                <div class="games-grid">
+                    <div class="game-card" data-category="mobile" onclick="openGameDetail('Mobile Legends')" data-tilt data-tilt-glare data-tilt-max-glare="0.3">
+                        <div class="game-img img-ml">ML</div>
+                        <div class="game-info">
+                            <h4>Mobile Legends</h4>
+                            <p>Moonton</p>
+                        </div>
+                    </div>
+                    <div class="game-card" data-category="mobile" onclick="openGameDetail('PUBG Mobile')" data-tilt data-tilt-glare data-tilt-max-glare="0.3">
+                        <div class="game-img img-pubg">PUBG</div>
+                        <div class="game-info">
+                            <h4>PUBG Mobile</h4>
+                            <p>Tencent</p>
+                        </div>
+                    </div>
+                    <div class="game-card" data-category="mobile" onclick="openGameDetail('Free Fire')" data-tilt data-tilt-glare data-tilt-max-glare="0.3">
+                        <div class="game-img img-ff">FF</div>
+                        <div class="game-info">
+                            <h4>Free Fire</h4>
+                            <p>Garena</p>
+                        </div>
+                    </div>
+                    <div class="game-card" data-category="pc" onclick="openGameDetail('Valorant')" data-tilt data-tilt-glare data-tilt-max-glare="0.3">
+                        <div class="game-img img-valo">VAL</div>
+                        <div class="game-info">
+                            <h4>Valorant</h4>
+                            <p>Riot Games</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Payment Methods -->
+            <section class="payment-methods">
+                <h3>Supported Payments</h3>
+                <div class="payment-grid">
+                    <div class="pay-logo">QRIS</div>
+                    <div class="pay-logo">GoPay</div>
+                    <div class="pay-logo">OVO</div>
+                    <div class="pay-logo">DANA</div>
+                    <div class="pay-logo">BCA</div>
+                    <div class="pay-logo">Mandiri</div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ======================= SEARCH VIEW ======================= -->
+        <div class="app-view" id="view-search">
+            <div class="page-header">
+                <h2>Search Games</h2>
+                <div class="search-bar">
+                    <i class='bx bx-search'></i>
+                    <input type="text" placeholder="Find your favorite game...">
+                </div>
+            </div>
+            <div class="search-results games-grid" style="padding: 1.5rem;">
+                <!-- Reusing game cards for layout -->
+                <div class="game-card" onclick="openGameDetail('Genshin Impact')">
+                    <div class="game-img img-gi">GI</div>
+                    <div class="game-info">
+                        <h4>Genshin Impact</h4>
+                        <p>HoYoverse</p>
+                    </div>
+                </div>
+                <div class="game-card" onclick="openGameDetail('Roblox')">
+                    <div class="game-img" style="background: linear-gradient(45deg, #111, #444);">RBX</div>
+                    <div class="game-info">
+                        <h4>Roblox</h4>
+                        <p>Roblox Corp</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================= GAME DETAIL / TOPUP VIEW ======================= -->
+        <div class="app-view" id="view-topup">
+            <div class="topup-header img-ml" id="topup-banner">
+                <div class="topup-blur-bg"></div>
+                <button class="back-btn" onclick="navigate('home')"><i class='bx bx-arrow-back'></i></button>
+                <div class="topup-title">
+                    <h2 id="topup-game-name">Mobile Legends</h2>
+                    <p>Official Developer</p>
+                </div>
+            </div>
+            <div class="topup-body" style="padding-bottom: 80px;"> <!-- Extra padding for sticky bar -->
+                <!-- Step 1 -->
+                <div class="topup-step">
+                    <div class="step-circle">1</div>
+                    <h3>Account Info</h3>
+                    <div class="form-group-row" id="dynamic-inputs">
+                        <!-- Inputs generated dynamically by JS based on selected game -->
+                    </div>
+                    <small class="helper-text">To find your User ID, tap your avatar in the top left corner of the main menu.</small>
+                </div>
+                
+                <!-- Step 2 -->
+                <div class="topup-step">
+                    <div class="step-circle">2</div>
+                    <h3>Select Package</h3>
+                    <div class="item-grid" id="topup-items">
+                        <div class="item-card advanced active" data-price="20000" data-item="86 Diamonds" onclick="selectItem(this)">
+                            <div class="ribbon">PROMO</div>
+                            <h4>86 <i class='bx bxs-diamond neon-text'></i></h4>
+                            <p>Rp 20.000</p>
+                        </div>
+                        <div class="item-card advanced" data-price="40000" data-item="172 Diamonds" onclick="selectItem(this)">
+                            <h4>172 <i class='bx bxs-diamond neon-text'></i></h4>
+                            <p>Rp 40.000</p>
+                        </div>
+                        <div class="item-card advanced" data-price="60000" data-item="257 Diamonds" onclick="selectItem(this)">
+                            <h4>257 <i class='bx bxs-diamond neon-text'></i></h4>
+                            <p>Rp 60.000</p>
+                        </div>
+                        <div class="item-card advanced" data-price="150000" data-item="706 Diamonds" onclick="selectItem(this)">
+                            <div class="ribbon gold">HOT</div>
+                            <h4>706 <i class='bx bxs-diamond neon-text'></i></h4>
+                            <p>Rp 150.000</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="topup-step">
+                    <div class="step-circle">3</div>
+                    <h3>Payment Method</h3>
+                    <div class="payment-selection" id="topup-payments">
+                        <div class="payment-category-title">E-Wallet</div>
+                        <div class="pay-method-card advanced active" data-fee="0" data-pay="QRIS" onclick="selectPayment(this)">
+                            <span>QRIS</span>
+                            <span class="fee">Free Fee</span>
+                        </div>
+                        <div class="pay-method-card advanced" data-fee="1000" data-pay="GoPay" onclick="selectPayment(this)">
+                            <span>GoPay</span>
+                            <span class="fee">+Rp 1.000</span>
+                        </div>
+                        <div class="payment-category-title">Virtual Account</div>
+                        <div class="pay-method-card advanced" data-fee="2500" data-pay="BCA Virtual Account" onclick="selectPayment(this)">
+                            <span>BCA VA</span>
+                            <span class="fee">+Rp 2.500</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================= PROFILE VIEW ======================= -->
+        <div class="app-view" id="view-profile">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <i class='bx bxs-user'></i>
+                </div>
+                <h2>Ahmad Gamer</h2>
+                <p class="neon-text">VIP Member</p>
+            </div>
+            <div class="profile-balance">
+                <div class="balance-card">
+                    <p>UpZone Balance</p>
+                    <h3>Rp 150.000</h3>
+                </div>
+                <button class="btn-topup-balance"><i class='bx bx-plus'></i> Topup</button>
+            </div>
+            <div class="profile-menu">
+                <div class="menu-list-item">
+                    <i class='bx bx-history'></i>
+                    <span>Transaction History</span>
+                    <i class='bx bx-chevron-right'></i>
+                </div>
+                <div class="menu-list-item">
+                    <i class='bx bx-cog'></i>
+                    <span>Settings</span>
+                    <i class='bx bx-chevron-right'></i>
+                </div>
+                <div class="menu-list-item">
+                    <i class='bx bx-help-circle'></i>
+                    <span>Help Center</span>
+                    <i class='bx bx-chevron-right'></i>
+                </div>
+                <div class="menu-list-item text-danger">
+                    <i class='bx bx-log-out'></i>
+                    <span>Log Out</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================= NOTIFICATIONS VIEW ======================= -->
+        <div class="app-view" id="view-notifications">
+            <div class="page-header">
+                <button class="back-btn" onclick="navigate('home')"><i class='bx bx-arrow-back'></i></button>
+                <h2>Notifications</h2>
+            </div>
+            <div class="notif-list">
+                <div class="notif-item unread">
+                    <div class="notif-icon"><i class='bx bxs-gift'></i></div>
+                    <div class="notif-text">
+                        <h4>Promo Weekend!</h4>
+                        <p>Dapatkan diskon 10% untuk topup Valorant Point hari ini.</p>
+                        <span class="notif-time">2 hours ago</span>
+                    </div>
+                </div>
+                <div class="notif-item">
+                    <div class="notif-icon success"><i class='bx bx-check'></i></div>
+                    <div class="notif-text">
+                        <h4>Topup Successful</h4>
+                        <p>Pembelian 86 Diamonds MLBB telah berhasil.</p>
+                        <span class="notif-time">1 day ago</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================= PAYMENT WAITING VIEW ======================= -->
+        <div class="app-view payment-status-view" id="view-payment-waiting">
+            <div class="status-card">
+                <i class='bx bx-time neon-text' style="font-size: 4rem;"></i>
+                <h2>Waiting for Payment</h2>
+                <p>Please complete your payment before the timer expires.</p>
+                <div class="qr-box">
+                    <i class='bx bx-qr' style="font-size: 8rem; color: white;"></i>
+                </div>
+                <h3 id="waiting-total-price" class="neon-text">Rp 0</h3>
+                <div class="payment-countdown" id="payment-timer">14:59</div>
+                <button class="btn-buy-now" style="width: 100%; justify-content: center; margin-top: 15px;" onclick="simulatePaymentProcess()">I Have Paid</button>
+                <button class="btn-modal cancel" style="width: 100%; margin-top: 10px;" onclick="navigate('home')">Cancel Payment</button>
+            </div>
+        </div>
+
+        <!-- ======================= PAYMENT SUCCESS VIEW ======================= -->
+        <div class="app-view payment-status-view" id="view-payment-success">
+            <div class="status-card success">
+                <div class="icon-circle success">
+                    <i class='bx bx-check'></i>
+                </div>
+                <h2>Payment Successful!</h2>
+                <p>Your topup has been processed and will be delivered shortly.</p>
+                <button class="btn-buy-now" style="width: 100%; justify-content: center; margin-top: 20px;" onclick="navigate('home')">Back to Home</button>
+            </div>
+        </div>
+
+        <!-- ======================= PAYMENT FAILED VIEW ======================= -->
+        <div class="app-view payment-status-view" id="view-payment-failed">
+            <div class="status-card failed">
+                <div class="icon-circle failed">
+                    <i class='bx bx-x'></i>
+                </div>
+                <h2>Payment Failed</h2>
+                <p>We couldn't process your payment. Please check your balance and try again.</p>
+                <button class="btn-buy-now" style="width: 100%; justify-content: center; margin-top: 20px;" onclick="navigate('home')">Try Again</button>
+            </div>
+        </div>
+
+        <!-- ======================= SCRATCH CARD VIEW ======================= -->
+        <div class="app-view" id="view-scratch" style="padding: 1.5rem; min-height: 80vh;">
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; margin-top: 50px;">
+                <h2 class="neon-text" style="margin-bottom: 20px;">Daily Scratch Card</h2>
+                <p style="color: var(--text-muted); margin-bottom: 30px; text-align: center;">Scratch the card below to reveal your secret promo code!</p>
+                <div class="scratch-container" style="position: relative; width: 300px; height: 150px; background: linear-gradient(45deg, #111, #222); border-radius: 15px; border: 2px solid var(--neon-accent); overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                    <div class="scratch-code" id="scratch-code" style="font-size: 2rem; font-weight: bold; color: var(--primary-color); letter-spacing: 3px;">UPZONE99</div>
+                    <canvas id="scratch-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair;"></canvas>
+                </div>
+                <button class="btn-buy-now" style="margin-top: 30px;" onclick="navigate('home')">Back to Home</button>
+            </div>
+        </div>
+
+    </main>
+    <!-- Scratch Card Icon moved to header -->
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav" id="bottom-nav">
+        <a href="javascript:void(0)" class="nav-item active" data-target="home">
+            <i class='bx bx-home-alt'></i>
+            <span>Home</span>
+        </a>
+        <a href="javascript:void(0)" class="nav-item" data-target="search">
+            <i class='bx bx-search'></i>
+            <span>Search</span>
+        </a>
+        <a href="javascript:void(0)" class="nav-item cart-btn" id="open-cart">
+            <div class="cart-icon-wrapper">
+                <i class='bx bx-shopping-bag'></i>
+                <span class="badge">0</span>
+            </div>
+            <span>Cart</span>
+        </a>
+        <a href="javascript:void(0)" class="nav-item" data-target="profile">
+            <i class='bx bx-user'></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+    <!-- Sticky Checkout Bar (Only shown in Topup view) -->
+    <div class="sticky-checkout" id="sticky-checkout">
+        <div class="checkout-info">
+            <p>Total Price</p>
+            <h3 id="checkout-total" class="neon-text">Rp 20.000</h3>
+        </div>
+        <div class="checkout-actions">
+            <button class="btn-icon" onclick="addToCart()" title="Add to Cart"><i class='bx bx-cart-add'></i></button>
+            <button class="btn-buy-now" onclick="processCheckout()">Buy Now <i class='bx bx-chevron-right'></i></button>
+        </div>
+    </div>
+
+    <!-- Off-Canvas Cart Drawer -->
+    <div class="cart-overlay" id="cart-overlay"></div>
+    <div class="cart-drawer" id="cart-drawer">
+        <div class="cart-header">
+            <h3>Your Cart</h3>
+            <button id="close-cart"><i class='bx bx-x'></i></button>
+        </div>
+        <div class="cart-body" id="cart-items">
+            <div class="empty-cart">
+                <i class='bx bx-shopping-bag'></i>
+                <p>Your cart is empty.</p>
+            </div>
+        </div>
+        <div class="cart-payment-section" style="padding: 1rem 1.5rem;">
+            <h4 style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">Select Payment for Cart:</h4>
+            <select id="cart-payment-select" class="app-input" onchange="renderCart()">
+                <option value="0">QRIS (Free Fee)</option>
+                <option value="1000">GoPay (+Rp 1.000)</option>
+                <option value="2500">BCA Virtual Account (+Rp 2.500)</option>
+            </select>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span class="neon-text" id="cart-total-price">Rp 0</span>
+            </div>
+            <button class="btn-checkout" onclick="checkoutCart()">Checkout Now</button>
+        </div>
+    </div>
+
+    <!-- CUSTOM MODAL (Replaces default browser alert/confirm) -->
+    <div class="custom-modal-overlay" id="custom-modal-overlay">
+        <div class="custom-modal" id="custom-modal">
+            <div class="modal-icon" id="modal-icon">
+                <i class='bx bx-info-circle'></i>
+            </div>
+            <h3 id="modal-title">Title</h3>
+            <p id="modal-text">This is the message.</p>
+            <div class="modal-actions" id="modal-actions">
+                <!-- Buttons dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Daily Reward (Gacha) -->
+    <div class="floating-reward" id="open-gacha" data-tilt data-tilt-scale="1.1">
+        <i class='bx bxs-gift bx-tada'></i>
+    </div>
+
+    <!-- Gacha Modal -->
+    <div class="custom-modal-overlay" id="gacha-modal-overlay">
+        <div class="custom-modal gacha-modal" id="gacha-modal">
+            <h3>Daily Reward</h3>
+            <div class="treasure-chest" id="treasure-chest">
+                <i class='bx bxs-box'></i>
+            </div>
+            <p id="gacha-result-text">Tap the chest to open!</p>
+            <div class="modal-actions">
+                <button class="btn-modal cancel" onclick="closeGachaModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+<!-- Particles.js -->
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
