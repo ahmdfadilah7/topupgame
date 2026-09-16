@@ -33,6 +33,7 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+upzone.conf
 
 # Build output (if a bundler is added later)
 dist/
