@@ -1,0 +1,23 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Voucher extends Model
+{
+    protected $fillable = [
+        'code',
+        'discount_type',
+        'discount_value',
+        'max_uses',
+        'uses',
+        'is_active',
+        'expires_at',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+        'expires_at' => 'datetime',
+    ];
+}

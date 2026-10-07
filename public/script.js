@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+function initFrontendUI() {
     // Initialize AOS Animation
     AOS.init({ duration: 800, once: true, offset: 50 });
 
@@ -40,6 +40,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('nav-notifications').addEventListener('click', () => navigate('notifications'));
     document.getElementById('nav-search-icon').addEventListener('click', () => navigate('search'));
 
+    let paymentTimerInterval = null;
+
     window.navigate = function(targetViewId) {
         // Hide all views
         appViews.forEach(view => {
@@ -50,6 +52,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetView = document.getElementById('view-' + targetViewId);
         if(targetView) {
             targetView.classList.add('active');
+        }
+
+        // --- Timer Logic ---
+        if (paymentTimerInterval) {
+            clearInterval(paymentTimerInterval);
+            paymentTimerInterval = null;
+        }
+        
+        if (targetViewId === 'payment-waiting') {
+            const timerEl = document.getElementById('payment-timer');
+            if (timerEl) {
+                let timeLeft = 14 * 60 + 59; // 14 mins 59 secs
+                timerEl.innerText = `14:59`;
+                
+                paymentTimerInterval = setInterval(() => {
+                    if (timeLeft <= 0) {
+                        clearInterval(paymentTimerInterval);
+                        timerEl.innerText = "EXPIRED";
+                        timerEl.style.color = "red";
+                        return;
+                    }
+                    timeLeft--;
+                    const m = Math.floor(timeLeft / 60);
+                    const s = Math.floor(timeLeft % 60);
+                    timerEl.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
         }
 
         // Update Bottom Nav active state (if target is in bottom nav)
@@ -109,10 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Topup Logic will be handled in GLOBAL FUNCTIONS
-
-
-
     // --- CART DRAWER LOGIC ---
     const openCartBtn = document.getElementById('open-cart');
     const closeCartBtn = document.getElementById('close-cart');
@@ -157,7 +182,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     setInterval(showRandomTransaction, 8000);
     setTimeout(showRandomTransaction, 2000);
-});
+}
+
+// Call it immediately since script is injected via Vue after DOM is ready
+initFrontendUI();
 
 
 // --- GLOBAL FUNCTIONS ---
@@ -330,7 +358,10 @@ window.validateTopupInput = function() {
 
 let currentPrice = 20000;
 let currentFee = 0;
-let selectedItemName = "86 Diamonds";
+let selectedSku = "";
+let selectedItemName = "";
+let checkoutCustomerNo = "";
+let selectedPaymentMethodName = "QRIS";
 
 window.selectItem = function(element) {
     document.querySelectorAll('.item-card.advanced').forEach(c => c.classList.remove('active'));
@@ -338,6 +369,7 @@ window.selectItem = function(element) {
     
     currentPrice = parseInt(element.getAttribute('data-price'));
     selectedItemName = element.getAttribute('data-item');
+    selectedSku = element.getAttribute('data-sku');
     updateCheckoutPrice();
 }
 
@@ -349,10 +381,10 @@ window.selectPayment = function(element) {
     });
     
     element.classList.add('active');
-    // Add checkmark to the end of the selected payment
     element.insertAdjacentHTML('beforeend', "<i class='bx bx-check-circle'></i>");
     
     currentFee = parseInt(element.getAttribute('data-fee'));
+    selectedPaymentMethodName = element.getAttribute('data-pay');
     updateCheckoutPrice();
 }
 
@@ -365,15 +397,75 @@ window.updateCheckoutPrice = function() {
 
 window.processCheckout = function() {
     const uidInput = document.getElementById('topup-uid');
+    const zoneInput = document.getElementById('topup-zone');
+    
     if(uidInput && uidInput.value.length < 5) {
         showCustomModal('Warning', 'Please enter a valid Player ID before checking out!', 'alert');
         return;
     }
+    if(!selectedSku) {
+        showCustomModal('Warning', 'Please select a package first!', 'alert');
+        return;
+    }
+    
+    checkoutCustomerNo = uidInput.value;
+    if(zoneInput && zoneInput.value) {
+        checkoutCustomerNo += zoneInput.value;
+    }
+
     const totalText = document.getElementById('checkout-total').innerText;
-    showCustomModal('Confirm Purchase', `Are you sure you want to buy ${selectedItemName} for ${totalText}?`, 'confirm', () => {
-        // Go to Payment Waiting View
-        document.getElementById('waiting-total-price').innerText = totalText;
-        navigate('payment-waiting');
+    showCustomModal('Confirm Purchase', `Are you sure you want to buy ${selectedItemName} for ${totalText} via ${selectedPaymentMethodName}?`, 'confirm', async () => {
+        
+        // Show loading state
+        const modalActions = document.getElementById('modal-actions');
+        modalActions.innerHTML = "<i class='bx bx-loader-alt bx-spin' style='font-size: 2rem; color: var(--neon-accent);'></i>";
+        
+        try {
+            const response = await fetch('/api/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    buyer_sku_code: selectedSku,
+                    customer_no: checkoutCustomerNo,
+                    payment_method: selectedPaymentMethodName
+                })
+            });
+            const data = await response.json();
+            
+            if (response.ok) {
+                closeCustomModal();
+                
+                document.getElementById('waiting-total-price').innerText = "Rp " + data.amount.toLocaleString('id-ID');
+                document.getElementById('waiting-payment-method').innerText = data.payment_method;
+                document.getElementById('waiting-order-id').innerText = data.ref_id;
+                
+                // Handle different payment types
+                const qrContainer = document.querySelector('.qr-container');
+                const qrInstruction = document.querySelector('.qr-instruction');
+                
+                if (data.payment_method === 'QRIS' && data.payment_details && data.payment_details.qr_string) {
+                    const qrImg = document.querySelector('.qr-container img');
+                    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data.payment_details.qr_string)}&bgcolor=ffffff&color=000000`;
+                    qrContainer.style.display = 'block';
+                    qrInstruction.innerText = "Scan this QR code using your e-Wallet app to complete the transaction.";
+                } else if (data.payment_details && data.payment_details.actions && data.payment_details.actions.mobile_web_checkout_url) {
+                    qrContainer.style.display = 'none';
+                    qrInstruction.innerHTML = `<a href="${data.payment_details.actions.mobile_web_checkout_url}" target="_blank" class="btn-primary-glow" style="margin-top:10px; font-size:1rem; text-decoration:none;">Click here to pay with ${data.payment_method}</a>`;
+                } else if (data.payment_details && data.payment_details.account_number) {
+                    qrContainer.style.display = 'none';
+                    qrInstruction.innerHTML = `Please transfer to Virtual Account: <br><strong class="neon-text" style="font-size:1.5rem; display:block; margin-top:10px;">${data.payment_details.account_number}</strong>`;
+                } else {
+                    qrContainer.style.display = 'none';
+                    qrInstruction.innerText = "Payment instructions not available.";
+                }
+                
+                navigate('payment-waiting');
+            } else {
+                showCustomModal('Checkout Failed', data.error || 'Failed to initialize payment', 'alert');
+            }
+        } catch (e) {
+            showCustomModal('Connection Error', 'Failed to connect to the server', 'alert');
+        }
     });
 }
 
@@ -386,6 +478,10 @@ window.addToCart = function() {
         showCustomModal('Warning', 'Please enter a valid User ID to add to cart!', 'alert');
         return;
     }
+    if(!selectedSku) {
+        showCustomModal('Warning', 'Please select a package first!', 'alert');
+        return;
+    }
     
     const gameName = document.getElementById('topup-game-name').innerText;
     const paymentName = document.querySelector('.pay-method-card.advanced.active span').innerText;
@@ -395,6 +491,7 @@ window.addToCart = function() {
         game: gameName,
         uid: uid,
         item: selectedItemName,
+        sku: selectedSku,
         payment: paymentName,
         price: totalPrice
     });
@@ -457,33 +554,116 @@ window.checkoutCart = function() {
         showCustomModal('Warning', 'Your cart is currently empty.', 'alert');
         return;
     }
+    
+    selectedSku = cart[0].sku;
+    checkoutCustomerNo = cart[0].uid;
+
     const cartTotalEl = document.getElementById('cart-total-price').innerText;
     const paymentMethod = document.getElementById('cart-payment-select');
     const selectedPaymentText = paymentMethod.options[paymentMethod.selectedIndex].text;
     
-    showCustomModal('Confirm Checkout', `Are you sure you want to checkout ${cart.length} items using ${selectedPaymentText} for a total of ${cartTotalEl}?`, 'confirm', () => {
-        // Hide cart and go to Payment Waiting View
-        document.getElementById('cart-drawer').classList.remove('active');
-        document.getElementById('cart-overlay').classList.remove('active');
+    selectedPaymentMethodName = selectedPaymentText;
+    
+    showCustomModal('Confirm Checkout', `Are you sure you want to checkout ${cart.length} items using ${selectedPaymentText} for a total of ${cartTotalEl}?`, 'confirm', async () => {
         
-        document.getElementById('waiting-total-price').innerText = cartTotalEl;
-        navigate('payment-waiting');
+        // Show loading state
+        const modalActions = document.getElementById('modal-actions');
+        modalActions.innerHTML = "<i class='bx bx-loader-alt bx-spin' style='font-size: 2rem; color: var(--neon-accent);'></i>";
         
-        cart = [];
-        renderCart();
+        try {
+            const response = await fetch('/api/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    buyer_sku_code: selectedSku,
+                    customer_no: checkoutCustomerNo,
+                    payment_method: selectedPaymentMethodName
+                })
+            });
+            const data = await response.json();
+            
+            if (response.ok) {
+                closeCustomModal();
+                
+                document.getElementById('cart-drawer').classList.remove('active');
+                document.getElementById('cart-overlay').classList.remove('active');
+                
+                document.getElementById('waiting-total-price').innerText = "Rp " + data.amount.toLocaleString('id-ID');
+                document.getElementById('waiting-payment-method').innerText = data.payment_method;
+                document.getElementById('waiting-order-id').innerText = data.ref_id;
+                
+                // Handle different payment types
+                const qrContainer = document.querySelector('.qr-container');
+                const qrInstruction = document.querySelector('.qr-instruction');
+                
+                if (data.payment_method === 'QRIS' && data.payment_details && data.payment_details.qr_string) {
+                    const qrImg = document.querySelector('.qr-container img');
+                    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data.payment_details.qr_string)}&bgcolor=ffffff&color=000000`;
+                    qrContainer.style.display = 'block';
+                    qrInstruction.innerText = "Scan this QR code using your e-Wallet app to complete the transaction.";
+                } else if (data.payment_details && data.payment_details.actions && data.payment_details.actions.mobile_web_checkout_url) {
+                    qrContainer.style.display = 'none';
+                    qrInstruction.innerHTML = `<a href="${data.payment_details.actions.mobile_web_checkout_url}" target="_blank" class="btn-primary-glow" style="margin-top:10px; font-size:1rem; text-decoration:none;">Click here to pay with ${data.payment_method}</a>`;
+                } else if (data.payment_details && data.payment_details.account_number) {
+                    qrContainer.style.display = 'none';
+                    qrInstruction.innerHTML = `Please transfer to Virtual Account: <br><strong class="neon-text" style="font-size:1.5rem; display:block; margin-top:10px;">${data.payment_details.account_number}</strong>`;
+                } else {
+                    qrContainer.style.display = 'none';
+                    qrInstruction.innerText = "Payment instructions not available.";
+                }
+                
+                navigate('payment-waiting');
+                
+                cart = [];
+                renderCart();
+            } else {
+                showCustomModal('Checkout Failed', data.error || 'Failed to initialize payment', 'alert');
+            }
+        } catch (e) {
+            showCustomModal('Connection Error', 'Failed to connect to the server', 'alert');
+        }
     });
 }
 
-// Payment Simulation Logic
-window.simulatePaymentProcess = function() {
-    // 80% chance of success, 20% chance of failure for simulation
-    const isSuccess = Math.random() > 0.2;
+// Payment Simulation & Digiflazz API Integration
+window.simulatePaymentProcess = async function() {
     
-    if(isSuccess) {
-        playSound('success');
-        navigate('payment-success');
-    } else {
+    const btn = document.querySelector('.payment-status-view .btn-primary-glow');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Processing...";
+    btn.disabled = true;
+
+    try {
+        const refId = document.getElementById('waiting-order-id').innerText;
+        const response = await fetch('/api/xendit/simulate-webhook', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                ref_id: refId
+            })
+        });
+
+        const result = await response.json();
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+
+        if (response.ok && result.success) {
+            playSound('success');
+            navigate('payment-success');
+        } else {
+            playSound('error');
+            const errorMsg = result.error || 'Unknown Error';
+            showCustomModal('Transaction Failed', 'Webhook simulation failed: ' + errorMsg, 'alert');
+            navigate('payment-failed');
+        }
+    } catch (e) {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
         playSound('error');
+        showCustomModal('Connection Error', 'Failed to connect to the backend API', 'alert');
         navigate('payment-failed');
     }
 }
