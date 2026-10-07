@@ -58,6 +58,22 @@ class XenditController extends Controller
             return response()->json(['error' => 'Invalid product price.'], 400);
         }
 
+        // Apply voucher discount if provided
+        $voucherCode = $request->input('voucher_code');
+        if ($voucherCode) {
+            $voucher = \App\Models\Voucher::where('code', strtoupper($voucherCode))->where('is_active', true)->first();
+            if ($voucher && ($voucher->usage_limit === null || $voucher->used_count < $voucher->usage_limit)) {
+                if ($voucher->valid_until === null || now()->isBefore($voucher->valid_until)) {
+                    $discount = ($voucher->discount_type === 'percent') ? ($price * $voucher->discount_value / 100) : $voucher->discount_value;
+                    if ($voucher->max_discount && $discount > $voucher->max_discount) {
+                        $discount = $voucher->max_discount;
+                    }
+                    $price -= $discount;
+                    $voucher->increment('used_count'); // Increment usage
+                }
+            }
+        }
+
         // Add payment fee based on method
         if ($paymentMethod === 'GoPay') {
             $price += 1000;

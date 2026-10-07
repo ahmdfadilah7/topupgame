@@ -104,7 +104,14 @@
         <!-- Step 4 -->
         <div class="topup-step">
             <div class="step-circle">4</div>
-            <h3>Buy! (Optional WhatsApp)</h3>
+            <h3>Promo & Contact</h3>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <input type="text" v-model="form.voucher" placeholder="Enter Promo Code" style="flex-grow: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--glass-border); background: var(--surface-light); color: white; text-transform: uppercase;">
+                <button class="btn-buy-now" @click="applyVoucher" style="padding: 10px 15px; border-radius: 10px;" :disabled="!form.voucher || !selectedItem">Apply</button>
+            </div>
+            <div v-if="voucherMessage" :style="{ color: voucherError ? '#ff4d4d' : 'var(--neon-accent)', fontSize: '0.8rem', marginBottom: '10px' }">
+                {{ voucherMessage }}
+            </div>
             <input type="text" v-model="form.whatsapp" placeholder="WhatsApp Number (e.g. 0812...)" style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(--glass-border); background: var(--surface-light); color: white;">
         </div>
 
@@ -139,14 +146,57 @@ const form = ref({
     zoneId: '',
     sku: '',
     paymentMethod: '',
-    whatsapp: ''
+    whatsapp: '',
+    voucher: ''
 });
 
 const selectedItem = ref(null);
+const voucherMessage = ref('');
+const voucherError = ref(false);
+const discountAmount = ref(0);
 
 const totalPrice = computed(() => {
-    return selectedItem.value ? selectedItem.value.price : 0;
+    if (!selectedItem.value) return 0;
+    let basePrice = selectedItem.value.price;
+    // apply payment fee
+    if (form.value.paymentMethod === 'BCA Virtual Account') basePrice += 2500;
+    if (form.value.paymentMethod === 'GoPay') basePrice += 1000;
+    
+    // apply discount
+    let finalPrice = basePrice - discountAmount.value;
+    return finalPrice > 0 ? finalPrice : 0;
 });
+
+const applyVoucher = async () => {
+    if (!form.value.voucher || !selectedItem.value) return;
+    voucherMessage.value = 'Checking...';
+    voucherError.value = false;
+    
+    try {
+        const response = await fetch('/api/vouchers/validate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                code: form.value.voucher,
+                transaction_amount: selectedItem.value.price
+            })
+        });
+        const data = await response.json();
+        if (response.ok) {
+            voucherError.value = false;
+            voucherMessage.value = data.message + ` (-Rp ${Number(data.voucher.discount_amount).toLocaleString('id-ID')})`;
+            discountAmount.value = data.voucher.discount_amount;
+        } else {
+            voucherError.value = true;
+            voucherMessage.value = data.message;
+            discountAmount.value = 0;
+        }
+    } catch(e) {
+        voucherError.value = true;
+        voucherMessage.value = 'Network error.';
+        discountAmount.value = 0;
+    }
+};
 
 const fetchItems = async () => {
     if (window.allGames) {
@@ -197,11 +247,11 @@ const checkout = async () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                user_id: form.value.userId,
-                zone_id: form.value.zoneId,
-                sku: form.value.sku,
+                buyer_sku_code: form.value.sku,
+                customer_no: form.value.zoneId ? `${form.value.userId}${form.value.zoneId}` : form.value.userId,
                 payment_method: form.value.paymentMethod,
-                whatsapp: form.value.whatsapp
+                whatsapp: form.value.whatsapp,
+                voucher_code: discountAmount.value > 0 ? form.value.voucher : null
             })
         });
 

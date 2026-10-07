@@ -25,3 +25,6 @@ Route::get('/admin/settings', [DigiflazzController::class, 'getSettings']);
 Route::post('/admin/settings', [DigiflazzController::class, 'saveSettings']);
 Route::post('/admin/product-margins', [DigiflazzController::class, 'saveProductMargin']);
 Route::apiResource('/admin/vouchers', \App\Http\Controllers\VoucherController::class);
+
+// Frontend Voucher Validation
+Route::post('/vouchers/validate', [\App\Http\Controllers\Api\FrontendVoucherController::class, 'validateVoucher']);

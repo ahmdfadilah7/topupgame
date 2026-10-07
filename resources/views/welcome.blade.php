@@ -19,13 +19,17 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
+    @if(!request()->is('admin*'))
+        <link rel="stylesheet" href="/style.css?v={{ time() }}" id="frontend-style">
+    @endif
+    
     <!-- External Scripts for Template -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
 </head>
-<body class="antialiased">
+<body class="antialiased {{ !request()->is('admin*') ? 'frontend-mode' : '' }}">
     <div id="app"></div>
 </body>
 </html>

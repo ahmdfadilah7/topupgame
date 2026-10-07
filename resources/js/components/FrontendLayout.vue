@@ -46,9 +46,9 @@
                 <i class='bx bx-history'></i>
                 <span>History</span>
             </div>
-            <div class="nav-item scanner-btn">
+            <div class="nav-item scanner-btn" @click="$router.push('/search')">
                 <div class="scanner-icon">
-                    <i class='bx bx-scan'></i>
+                    <i class='bx bx-joystick'></i>
                 </div>
             </div>
             <div class="nav-item" :class="{ active: $route.path === '/search' }" @click="$router.push('/search')">
@@ -168,11 +168,13 @@ onMounted(async () => {
     document.documentElement.classList.add('frontend-mode');
     document.body.classList.add('frontend-mode');
 
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = '/style.css?v=1.01';
-    link.id = 'frontend-style';
-    document.head.appendChild(link);
+    if (!document.getElementById('frontend-style')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = '/style.css?v=1.01';
+        link.id = 'frontend-style';
+        document.head.appendChild(link);
+    }
 
     await checkAuth();
 

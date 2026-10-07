@@ -47,21 +47,8 @@
         </div>
     </section>
 
-    <!-- Categories Section -->
-    <section class="categories" data-aos="fade-up" style="padding: 0 1.5rem 1.5rem;">
-        <div class="section-title">
-            <h3><i class='bx bxs-category neon-text'></i> Categories</h3>
-        </div>
-        <div class="filters">
-            <div class="filter-btn active">All Games</div>
-            <div class="filter-btn">Mobile</div>
-            <div class="filter-btn">PC Games</div>
-            <div class="filter-btn">Vouchers</div>
-        </div>
-    </section>
-
     <!-- All Games Grid -->
-    <section class="all-games" data-aos="fade-up" style="padding: 0 1.5rem 1.5rem;">
+    <section class="all-games" data-aos="fade-up" style="padding: 0 1.5rem 1.5rem; margin-top: 2rem;">
         <div class="section-title">
             <h3><i class='bx bxs-game neon-text'></i> Popular Games</h3>
         </div>
@@ -96,7 +83,8 @@ const fetchGames = async () => {
         const json = await response.json();
         if (json.data) {
             const activeGames = json.data.filter(g => g.category === 'Games' && g.is_active === true);
-            popularBrands.value = [...new Set(activeGames.map(g => g.brand))].sort();
+            const brands = [...new Set(activeGames.map(g => g.brand))].sort();
+            popularBrands.value = brands;
             
             // Pass games to global window to avoid refetching on detail page if wanted
             window.allGames = activeGames; 
